@@ -10,7 +10,7 @@ systems**, with emphasis on:
 - vectorized computation
 - engineering tradeoffs
 
-High-level ML libraries are intentionally avoided.
+High-level machine learning libraries are intentionally avoided.
 
 ---
 
@@ -19,7 +19,7 @@ High-level ML libraries are intentionally avoided.
 This phase transitions from mathematical foundations to executable learning systems.
 Each day builds reusable primitives that are later composed into full training loops.
 
-The focus is not speed, but **correctness and understanding**.
+The focus is not speed, but **correctness, clarity, and system behavior**.
 
 ---
 
@@ -48,7 +48,7 @@ They are interpreted as **vertical geometric distances** between the prediction
 line and observed data points.
 
 Manual parameter sweeps were used to observe:
-- underfitting due to poor alignment
+- underfitting due to poor projection alignment
 - systematic residual patterns
 - improved geometric alignment with better parameter choices
 
@@ -80,7 +80,7 @@ This computes the **exact global minimum** of the squared error objective.
 
 ### Least Squares as Projection
 The normal equation is interpreted geometrically as computing the
-**orthogonal projection of the target vector $y$ onto the column space of $X$**.
+**orthogonal projection of the target vector $$y$$ onto the column space of $$X$$**.
 
 This framing explains why the solution exists and when it fails.
 
@@ -102,8 +102,8 @@ This allows all parameters to be learned through a single dot product.
 ---
 
 ### Stability & Scalability Analysis
-- Matrix inversion scales as $O(d^3)$
-- The solution requires $X^T X$ to be invertible
+- Matrix inversion scales as $$O(d^3)$$
+- The solution requires $$X^T X$$ to be invertible
 - Linearly dependent features cause failure (singularity)
 
 From an engineering perspective, explicit inversion is avoided in favor of
@@ -120,9 +120,41 @@ prediction and residual primitives developed in Days 01 and 02.
 
 ---
 
-## Next Step — Day 03
-Implementation of **Gradient Descent** from scratch, introducing:
-- cost functions
-- gradients
-- training loops
-- convergence behavior
+## Day 03 — Linear Regression: Batch Gradient Descent
+
+### Iterative Optimization
+Implemented a scalable batch gradient descent training loop to minimize the
+Mean Squared Error (MSE) cost function iteratively.
+
+This replaces closed-form matrix inversion with incremental parameter updates.
+
+---
+
+### Vectorized Calculus
+Parameter updates follow:
+
+$$
+w = w - \eta \frac{\partial J}{\partial w}, \quad
+b = b - \eta \frac{\partial J}{\partial b}
+$$
+
+Gradients are computed using matrix–vector products, enabling fully vectorized
+multi-parameter updates without explicit loops.
+
+---
+
+### Convergence Engineering
+Integrated convergence controls into the training loop:
+- Early stopping based on cost improvement threshold
+- Maximum iteration safeguards
+- Empirical analysis of learning rate stability and divergence
+
+These mechanisms ensure numerically stable optimization.
+
+---
+
+### Reusable Component
+Encapsulated gradient descent logic into a reusable `LinearRegressionGD` class,
+establishing the first production-style model in the *ML From Scratch* library.
+
+Day 03 completes the transition from analytical solutions to scalable learning systems.
