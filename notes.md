@@ -1,3 +1,7 @@
+# ML From Scratch — Technical Notes
+
+---
+
 ## Day 01 — Linear Regression Geometry & Forward Pass
 
 ### Prediction Logic
@@ -7,7 +11,13 @@ $$
 f: \mathbb{R}^d \rightarrow \mathbb{R}
 $$
 
-where the input feature matrix $$X$$ is transformed by a weight vector $$w$$ representing the direction of best fit in feature space.
+Predictions are computed as:
+
+$$
+\hat{y} = Xw + b
+$$
+
+where the weight vector $w$ defines the direction of projection in feature space.
 
 ---
 
@@ -18,24 +28,18 @@ $$
 r = y - \hat{y}
 $$
 
-These residuals represent vertical error vectors between ground truth values and model predictions.  
-From a geometric perspective, learning seeks to minimize the aggregate magnitude of these residual vectors.
+They represent **vertical error vectors** between ground truth values and model
+predictions.
+
+Learning later seeks to minimize the aggregate magnitude of these vectors.
 
 ---
 
-### Role of Weight ($$w$$)
-The weight vector controls the orientation (rotation) of the prediction line or hyperplane.
+### Role of Parameters
+- $w$ controls the **orientation** of the prediction line or hyperplane
+- $b$ acts as a **translation parameter**, shifting predictions vertically
 
-Small changes in $$w$$ significantly affect:
-- The direction of projection
-- The alignment between predicted outputs and the target distribution
-
----
-
-### Role of Bias ($$b$$)
-The bias term acts as a translation parameter.
-
-It shifts the prediction function vertically, allowing the model to fit data distributions that do not pass through the origin.
+Small changes in $w$ significantly affect projection alignment.
 
 ---
 
@@ -46,13 +50,86 @@ $$
 \hat{y} = Xw + b
 $$
 
-where the scalar bias term $$b$$ is automatically expanded across the output vector.  
-This pattern is critical for writing high-performance, vectorized machine learning code.
+where the scalar bias term $b$ is automatically expanded across the output vector.
+This pattern is critical for high-performance vectorized ML code.
 
 ---
 
 ### Transition to Cost
 Day 01 establishes *how predictions are generated*.
 
-While residual vectors are observable, there is no single scalar metric to evaluate global model performance.  
-This motivates the introduction of a cost function to aggregate residual behavior, which is addressed in subsequent days.
+Residual vectors are observable, but no single scalar metric exists to evaluate
+global model performance. This motivates the introduction of cost functions.
+
+---
+
+## Day 02 — The Normal Equation & Closed-Form Solutions
+
+### Least Squares as Projection
+The normal equation computes the **orthogonal projection** of the target vector $y$
+onto the column space of $X$.
+
+The resulting projection corresponds to the predictions $\hat{y} = Xw$.
+
+---
+
+### Augmentation Strategy
+Bias handling is unified by augmenting the data matrix:
+
+$$
+X \in \mathbb{R}^{n \times d}
+\;\;\longrightarrow\;\;
+[\mathbf{1}, X] \in \mathbb{R}^{n \times (d+1)}
+$$
+
+with an augmented weight vector:
+
+$$
+\begin{bmatrix}
+b \\
+w
+\end{bmatrix}
+$$
+
+This allows all parameters to be learned via a single dot product.
+
+---
+
+### Numerical Standards
+- $X \in \mathbb{R}^{n \times d}$ — feature matrix
+- $w \in \mathbb{R}^{d}$ — weight vector
+- $y \in \mathbb{R}^{n}$ — target vector
+
+Shape correctness is treated as a first-class constraint.
+
+---
+
+### The Inversion Bottleneck
+The normal equation requires computing:
+
+$$
+(X^T X)^{-1}
+$$
+
+This operation:
+- scales as $O(d^3)$
+- becomes impractical for large feature counts
+- fails if features are linearly dependent
+
+This motivates regularization or iterative methods.
+
+---
+
+### Why Closed-Form Solutions Matter
+Despite scalability limits, the normal equation is valuable because it:
+- provides geometric clarity
+- exposes numerical failure modes
+- establishes a baseline for optimization methods
+
+---
+
+### Transition to Gradient Descent
+The limitations of matrix inversion justify the move to **iterative optimization**.
+
+Gradient Descent replaces exact inversion with incremental parameter updates,
+scaling to large datasets while using the same prediction and residual primitives.
