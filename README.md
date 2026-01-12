@@ -158,3 +158,54 @@ Encapsulated gradient descent logic into a reusable `LinearRegressionGD` class,
 establishing the first production-style model in the *ML From Scratch* library.
 
 Day 03 completes the transition from analytical solutions to scalable learning systems.
+
+## Day 04 — Logistic Regression: The Sigmoid Function
+
+### Probabilistic Transformation
+Linear regression produces unbounded outputs and fails for classification tasks.
+To address this, implemented the Sigmoid activation function:
+
+$$
+\sigma(z) = \frac{1}{1 + e^{-z}}
+$$
+
+which transforms the linear score $$z = Xw + b$$ into a bounded probability
+$$P(y=1 \mid X) \in (0, 1)$$.
+
+---
+
+### Decision Boundary Geometry
+Classification is interpreted geometrically as a spatial partitioning problem.
+
+The decision boundary occurs where:
+
+$$
+z = Xw + b = 0
+$$
+
+This linear hyperplane divides the feature space into two regions corresponding
+to predicted class probabilities above and below 0.5.
+
+---
+
+### Numerical Stability Engineering
+Implemented input-range limiting for the sigmoid computation to prevent numerical
+overflow in the exponential function.
+
+This ensures stable forward passes even for large-magnitude logits and is a
+necessary safeguard for production-grade implementations.
+
+---
+
+### Gradient Behavior Analysis
+Analyzed the derivative of the sigmoid function:
+
+$$
+\sigma'(z) = \sigma(z)(1 - \sigma(z))
+$$
+
+This reveals the vanishing gradient risk in regions of extreme model confidence,
+where updates become small and learning slows.
+
+Day 04 establishes the probabilistic foundation required for logistic regression
+optimization and classification loss functions.

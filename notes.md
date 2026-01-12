@@ -181,3 +181,66 @@ Gradient Descent trades mathematical exactness for scalability.
 The same prediction and residual primitives from Days 01 and 02 are reused,
 demonstrating that optimization is an extension of the existing system—not a
 new model.
+
+
+## Day 04 — Logistic Regression & The Sigmoid Function
+
+### The Necessity of Sigmoid
+Linear models are unbounded and unsuitable for probabilistic classification.
+
+Classification requires a mapping into the interval:
+
+$$
+(0, 1)
+$$
+
+The sigmoid function provides a smooth, monotonic transformation that enables
+interpretable probabilities:
+
+$$
+P(y=1 \mid X) = \sigma(z)
+$$
+
+---
+
+### Logits and Evidence
+The linear score:
+
+$$
+z = Xw + b
+$$
+
+is referred to as the *logit*.  
+Geometrically, $$z$$ represents accumulated evidence from the input features,
+while the sigmoid converts this evidence into confidence.
+
+---
+
+### The Decision Boundary
+Classification occurs where predicted probability equals 0.5:
+
+$$
+P(y=1 \mid X) = 0.5
+$$
+
+This condition is satisfied exactly when:
+
+$$
+z = 0
+$$
+
+Thus, the decision boundary is a linear hyperplane in feature space.
+
+---
+
+### Vanishing Gradients
+The derivative of the sigmoid function is:
+
+$$
+\sigma'(z) = \sigma(z)(1 - \sigma(z))
+$$
+
+As $$|z|$$ becomes large, $$\sigma'(z)$$ approaches zero.
+
+This causes gradients to vanish for samples the model is already highly confident
+about, reducing their contribution to learning and slowing convergence.
