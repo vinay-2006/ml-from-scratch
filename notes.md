@@ -244,3 +244,61 @@ As $$|z|$$ becomes large, $$\sigma'(z)$$ approaches zero.
 
 This causes gradients to vanish for samples the model is already highly confident
 about, reducing their contribution to learning and slowing convergence.
+
+
+## Day 05 — Log Loss & Numerical Stability
+
+### Why MSE Fails
+Mean Squared Error treats prediction errors linearly and produces non-convex cost
+surfaces when paired with a sigmoid activation.
+
+This leads to weak gradients and unreliable convergence in classification tasks.
+
+Log Loss preserves convexity for logistic regression, guaranteeing a single global
+minimum.
+
+---
+
+### Epsilon Clipping
+Because the logarithm is undefined at zero and one:
+
+$$
+\log(0) \;\; \text{is undefined}
+$$
+
+predicted probabilities must be clipped to:
+
+$$
+[\epsilon, 1 - \epsilon]
+$$
+
+with a typical choice:
+
+$$
+\epsilon = 10^{-15}
+$$
+
+This prevents numerical instability during both loss and gradient computation.
+
+---
+
+### Gradient Intuition
+The gradient of Log Loss with respect to predictions scales inversely with the
+model’s confidence error.
+
+As a result:
+- mildly wrong predictions contribute small gradients
+- **confidently wrong predictions dominate learning**
+
+This ensures steepest descent occurs where the model is most incorrect.
+
+---
+
+### Analytical vs. Numerical Verification
+Analytical derivatives must always be validated against numerical gradients using
+finite-difference approximations.
+
+Agreement between the two confirms:
+- correct implementation
+- stable learning dynamics
+- readiness for integration into training loops

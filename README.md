@@ -209,3 +209,50 @@ where updates become small and learning slows.
 
 Day 04 establishes the probabilistic foundation required for logistic regression
 optimization and classification loss functions.
+
+
+## Day 05 — Logistic Regression: Log Loss & Derivatives
+
+### Objective Function Analysis
+Evaluated the failure of Mean Squared Error (MSE) for classification tasks and
+implemented Binary Cross-Entropy (Log Loss) as the correct probabilistic objective
+for logistic regression.
+
+Log Loss evaluates the correctness of **model confidence**, not just numerical
+distance between predictions and labels.
+
+---
+
+### Numerical Stability Primitives
+Engineered epsilon-clipping logic to prevent logarithmic singularities when computing:
+
+$$
+\log(0) \quad \text{and} \quad \log(1)
+$$
+
+Predicted probabilities are constrained to the interval:
+
+$$
+[\epsilon, 1 - \epsilon]
+$$
+
+ensuring numerically stable loss and gradient computation.
+
+---
+
+### Learning Signal Verification
+Developed a numerical gradient checker using finite differences to validate the
+analytical derivatives of the Log Loss function.
+
+Close agreement between analytical and numerical gradients confirms correctness
+and reliability of the learning signal.
+
+---
+
+### Confidence-Based Punishment
+Visualized Log Loss as a function of predicted probability to demonstrate how
+confident incorrect predictions are penalized **exponentially**, forcing the model
+to prioritize high-error samples during optimization.
+
+Day 05 establishes the correct objective function required for stable and
+interpretable classification learning.
