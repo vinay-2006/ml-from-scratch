@@ -256,3 +256,53 @@ to prioritize high-error samples during optimization.
 
 Day 05 establishes the correct objective function required for stable and
 interpretable classification learning.
+
+
+## Day 06 — Logistic Regression: Gradient Descent & Decision Boundaries
+
+### End-to-End Synthesis
+Integrated linear scoring, sigmoid activation, and log loss into a complete binary
+classification training pipeline.
+
+The model computes:
+- a linear score $$z = Xw + b$$
+- probabilistic predictions $$\hat{y} = \sigma(z)$$
+- optimization via Binary Cross-Entropy (Log Loss)
+
+This establishes logistic regression as a fully trainable system.
+
+---
+
+### Decision Boundary Optimization
+Visualized the geometric evolution of the decision boundary defined by:
+
+$$
+z = Xw + b = 0
+$$
+
+Training progressively rotates and translates this hyperplane to partition feature
+space into probabilistic regions corresponding to class labels.
+
+---
+
+### Gradient Chain Rule Implementation
+Leveraged the simplified gradient:
+
+$$
+\nabla_w J = \frac{1}{n} X^T (\hat{y} - y)
+$$
+
+This cancellation of sigmoid and log loss derivatives yields numerically stable and
+efficient parameter updates, closely resembling linear regression gradients.
+
+---
+
+### Loss vs. Accuracy Analysis
+Analyzed training dynamics to distinguish between:
+- **Log Loss** — a continuous optimization objective
+- **Accuracy** — a discrete evaluation metric
+
+Observed that loss continues to decrease even when accuracy plateaus, reflecting
+increasing model confidence rather than class count changes.
+
+Day 06 completes the end-to-end training loop for logistic regression.

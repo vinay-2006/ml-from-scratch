@@ -302,3 +302,51 @@ Agreement between the two confirms:
 - correct implementation
 - stable learning dynamics
 - readiness for integration into training loops
+
+
+## Day 06 — Logistic Regression Training Dynamics
+
+### Objective Optimization
+Training adjusts parameters $$w$$ and $$b$$ to align predicted probabilities with
+actual labels.
+
+Geometrically, this corresponds to moving the decision boundary to minimize
+confidence error across the dataset.
+
+---
+
+### The Role of Log Loss
+Log Loss serves as the continuous driver of learning.
+
+Even after classification accuracy stabilizes, loss continues to decrease as the
+model increases certainty in correct predictions and reduces overconfidence in
+incorrect ones.
+
+---
+
+### Geometry of the Boundary
+The decision boundary is defined where:
+
+$$
+P(y = 1 \mid X) = 0.5
+$$
+
+which occurs exactly when:
+
+$$
+z = Xw + b = 0
+$$
+
+Training is equivalent to rotating and translating this hyperplane to maximize
+class separation in feature space.
+
+---
+
+### Convergence Indicators
+Stable convergence is characterized by:
+- a flattening loss curve
+- diminishing gradient magnitudes
+- stable parameter updates
+
+Because logistic regression with log loss is convex, convergence implies the
+optimizer has reached the global minimum of the cost surface.
