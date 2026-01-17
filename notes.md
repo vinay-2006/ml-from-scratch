@@ -1,352 +1,96 @@
-# ML From Scratch — Technical Notes
+# 📑 Week B — Engineering Notes
+
+Lessons learned while building, breaking, and fixing ML systems from scratch.
+These notes focus on *failure modes* and *why fixes worked*.
 
 ---
 
-## Day 01 — Linear Regression Geometry & Forward Pass
+## 01 | Geometry Reframed Learning
 
-### Prediction Logic
-Linear regression defines a mapping:
+Early on, residuals were treated as abstract error terms.
 
-$$
-f: \mathbb{R}^d \rightarrow \mathbb{R}
-$$
+Plotting them as **projection distances** revealed that residuals *define* the learning signal. Once this was visualized, gradient descent behavior stopped feeling arbitrary.
 
-Predictions are computed as:
-
-$$
-\hat{y} = Xw + b
-$$
-
-where the weight vector $$w$$ defines the direction of projection in feature space.
+📎 See: Day 01 notebook — residual plots.
 
 ---
 
-### Geometric Residuals
-Residuals are defined as:
+## 02 | Exact Solutions Fail Quietly
 
-$$
-r = y - \hat{y}
-$$
+The Normal Equation worked — until it didn’t.
 
-They represent **vertical error vectors** between ground truth values and model
-predictions.
+Observed issues:
+- singular matrices with correlated features
+- exploding weights for poorly scaled inputs
 
-Learning later seeks to minimize the aggregate magnitude of these vectors.
-
----
-
-### Role of Parameters
-- $$w$$ controls the **orientation** of the prediction line or hyperplane
-- $$b$$ acts as a **translation parameter**, shifting predictions vertically
-
-Small changes in $$w$$ significantly affect projection alignment.
+Lesson:
+> Mathematical exactness does not imply numerical robustness.
 
 ---
 
-### Broadcasting Primitives
-The implementation relies on NumPy broadcasting to compute:
+## 03 | Optimization Was the Real Bottleneck
 
-$$
-\hat{y} = Xw + b
-$$
+Initial Gradient Descent runs diverged.
 
-where the scalar bias term $$b$$ is automatically expanded across the output vector.
-This pattern is critical for high-performance vectorized ML code.
+Root causes:
+- learning rate > 0.1 on curved cost surfaces
+- ignoring gradient magnitude diagnostics
 
----
+Fix:
+- learning rate sweeps
+- early stopping based on loss delta
 
-### Transition to Cost
-Day 01 establishes *how predictions are generated*.
-
-Residual vectors are observable, but no single scalar metric exists to evaluate
-global model performance. This motivates the introduction of cost functions.
+📎 See: Day 03 loss divergence vs convergence plots.
 
 ---
 
-## Day 02 — The Normal Equation & Closed-Form Solutions
+## 04 | Probability Introduced New Failure Modes
 
-### Least Squares as Projection
-The normal equation computes the **orthogonal projection** of the target vector $$y$$
-onto the column space of $$X$$.
+Switching to sigmoid introduced:
+- saturation for `|z| > 10`
+- vanishing gradients
+- overflow for `z > ~60`
 
-The resulting projection corresponds to the predictions $$\hat{y} = Xw$$.
+Sigmoid clipping was added **after observing `inf` values** in forward passes.
 
----
-
-### Augmentation Strategy
-Bias handling is unified by augmenting the data matrix:
-
-$$
-X \in \mathbb{R}^{n \times d}
-\;\;\longrightarrow\;\;
-[\mathbf{1}, X] \in \mathbb{R}^{n \times (d+1)}
-$$
-
-with an augmented weight vector:
-
-$$
-\begin{bmatrix}
-b \\
-w
-\end{bmatrix}
-$$
-
-This allows all parameters to be learned via a single dot product.
+📎 See: Day 04 sigmoid saturation plots.
 
 ---
 
-### Numerical Standards
-- $$X \in \mathbb{R}^{n \times d}$$ — feature matrix
-- $$w \in \mathbb{R}^{d}$$ — weight vector
-- $$y \in \mathbb{R}^{n}$$ — target vector
+## 05 | Loss Design Changed Everything
 
-Shape correctness is treated as a first-class constraint.
+Using MSE with sigmoid caused:
+- weak gradients for confident mistakes
+- non-convex behavior
 
----
+Switching to Log Loss:
+- restored convexity
+- amplified gradients for confident errors
+- simplified gradient expressions
 
-### The Inversion Bottleneck
-The normal equation requires computing:
-
-$$
-(X^T X)^{-1}
-$$
-
-This operation:
-- scales as $$O(d^3)$$
-- becomes impractical for large feature counts
-- fails if features are linearly dependent
-
-This motivates regularization or iterative methods.
+📎 See: Day 05 log-loss vs MSE comparison.
 
 ---
 
-### Why Closed-Form Solutions Matter
-Despite scalability limits, the normal equation is valuable because it:
-- provides geometric clarity
-- exposes numerical failure modes
-- establishes a baseline for optimization methods
+## 06 | Loss ≠ Accuracy
+
+Accuracy plateaued early.
+Log Loss kept decreasing.
+
+This showed the model was learning *confidence calibration*, not just labels.
+
+Key realization:
+> Accuracy alone hides learning progress.
 
 ---
 
-### Transition to Gradient Descent
-The limitations of matrix inversion justify the move to **iterative optimization**.
+## 07 | Metrics Encode Cost
 
-Gradient Descent replaces exact inversion with incremental parameter updates,
-scaling to large datasets while using the same prediction and residual primitives.
+On the Iris dataset:
+- accuracy remained high
+- recall varied significantly with threshold
 
----
+Precision / Recall revealed trade-offs accuracy could not.
 
-## Day 03 — Batch Gradient Descent & Cost Surfaces
-
-### The Cost Function (MSE)
-While residuals provide local error signals, Mean Squared Error (MSE) aggregates
-them into a global scalar objective:
-
-$$
-J(w, b) = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
-$$
-
-For linear regression, this cost surface forms a convex bowl, guaranteeing a single
-global minimum.
-
----
-
-### Gradient Logic
-Gradients represent the direction of steepest ascent of the cost surface.
-
-By updating parameters in the opposite direction of the gradient, optimization
-proceeds “downhill” toward the minimum:
-
-$$
-w \leftarrow w - \eta \nabla_w J, \quad
-b \leftarrow b - \eta \nabla_b J
-$$
-
-This replaces exact algebraic solutions with controlled numerical descent.
-
----
-
-### Hyperparameter Sensitivity
-The learning rate $$\eta$$ is the most critical hyperparameter:
-- too small → slow convergence
-- too large → overshooting and divergence
-
-Observed instability directly reflects the curvature of the cost surface.
-
----
-
-### Engineering Perspective
-Gradient Descent trades mathematical exactness for scalability.
-
-The same prediction and residual primitives from Days 01 and 02 are reused,
-demonstrating that optimization is an extension of the existing system—not a
-new model.
-
-
-## Day 04 — Logistic Regression & The Sigmoid Function
-
-### The Necessity of Sigmoid
-Linear models are unbounded and unsuitable for probabilistic classification.
-
-Classification requires a mapping into the interval:
-
-$$
-(0, 1)
-$$
-
-The sigmoid function provides a smooth, monotonic transformation that enables
-interpretable probabilities:
-
-$$
-P(y=1 \mid X) = \sigma(z)
-$$
-
----
-
-### Logits and Evidence
-The linear score:
-
-$$
-z = Xw + b
-$$
-
-is referred to as the *logit*.  
-Geometrically, $$z$$ represents accumulated evidence from the input features,
-while the sigmoid converts this evidence into confidence.
-
----
-
-### The Decision Boundary
-Classification occurs where predicted probability equals 0.5:
-
-$$
-P(y=1 \mid X) = 0.5
-$$
-
-This condition is satisfied exactly when:
-
-$$
-z = 0
-$$
-
-Thus, the decision boundary is a linear hyperplane in feature space.
-
----
-
-### Vanishing Gradients
-The derivative of the sigmoid function is:
-
-$$
-\sigma'(z) = \sigma(z)(1 - \sigma(z))
-$$
-
-As $$|z|$$ becomes large, $$\sigma'(z)$$ approaches zero.
-
-This causes gradients to vanish for samples the model is already highly confident
-about, reducing their contribution to learning and slowing convergence.
-
-
-## Day 05 — Log Loss & Numerical Stability
-
-### Why MSE Fails
-Mean Squared Error treats prediction errors linearly and produces non-convex cost
-surfaces when paired with a sigmoid activation.
-
-This leads to weak gradients and unreliable convergence in classification tasks.
-
-Log Loss preserves convexity for logistic regression, guaranteeing a single global
-minimum.
-
----
-
-### Epsilon Clipping
-Because the logarithm is undefined at zero and one:
-
-$$
-\log(0) \;\; \text{is undefined}
-$$
-
-predicted probabilities must be clipped to:
-
-$$
-[\epsilon, 1 - \epsilon]
-$$
-
-with a typical choice:
-
-$$
-\epsilon = 10^{-15}
-$$
-
-This prevents numerical instability during both loss and gradient computation.
-
----
-
-### Gradient Intuition
-The gradient of Log Loss with respect to predictions scales inversely with the
-model’s confidence error.
-
-As a result:
-- mildly wrong predictions contribute small gradients
-- **confidently wrong predictions dominate learning**
-
-This ensures steepest descent occurs where the model is most incorrect.
-
----
-
-### Analytical vs. Numerical Verification
-Analytical derivatives must always be validated against numerical gradients using
-finite-difference approximations.
-
-Agreement between the two confirms:
-- correct implementation
-- stable learning dynamics
-- readiness for integration into training loops
-
-
-## Day 06 — Logistic Regression Training Dynamics
-
-### Objective Optimization
-Training adjusts parameters $$w$$ and $$b$$ to align predicted probabilities with
-actual labels.
-
-Geometrically, this corresponds to moving the decision boundary to minimize
-confidence error across the dataset.
-
----
-
-### The Role of Log Loss
-Log Loss serves as the continuous driver of learning.
-
-Even after classification accuracy stabilizes, loss continues to decrease as the
-model increases certainty in correct predictions and reduces overconfidence in
-incorrect ones.
-
----
-
-### Geometry of the Boundary
-The decision boundary is defined where:
-
-$$
-P(y = 1 \mid X) = 0.5
-$$
-
-which occurs exactly when:
-
-$$
-z = Xw + b = 0
-$$
-
-Training is equivalent to rotating and translating this hyperplane to maximize
-class separation in feature space.
-
----
-
-### Convergence Indicators
-Stable convergence is characterized by:
-- a flattening loss curve
-- diminishing gradient magnitudes
-- stable parameter updates
-
-Because logistic regression with log loss is convex, convergence implies the
-optimizer has reached the global minimum of the cost surface.
+Final takeaway:
+> Metrics are business decisions disguised as math.
