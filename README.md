@@ -1,308 +1,146 @@
-# ML From Scratch
+# 🧠 ML From Scratch
 
-This repository implements core machine learning algorithms from first principles
-using **NumPy only**.
+> Building **end-to-end machine learning systems** using **NumPy only**.  
+> Focused on observable learning behavior, numerical stability, and evaluation.
 
-The objective is to translate mathematical theory into **functional, verifiable
-systems**, with emphasis on:
-- geometric intuition
-- numerical correctness
-- vectorized computation
-- engineering tradeoffs
-
-High-level machine learning libraries are intentionally avoided.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Training](https://img.shields.io/badge/Training-Complete-success)
+![Evaluation](https://img.shields.io/badge/Evaluation-Complete-success)
+![Deps](https://img.shields.io/badge/Dependencies-NumPy%20Only-orange)
 
 ---
 
-## 🟦 Week B — ML From Scratch (Implementation Phase)
+## 🚀 What This Project Does
 
-This phase transitions from mathematical foundations to executable learning systems.
-Each day builds reusable primitives that are later composed into full training loops.
+This repository implements, trains, and evaluates **linear and logistic regression models from scratch**, with full control over:
 
-The focus is not speed, but **correctness, clarity, and system behavior**.
+- optimization dynamics  
+- numerical failure modes  
+- learning diagnostics  
+- evaluation metrics  
 
----
+The entire machine learning pipeline is engineered from first principles:
 
-## Day 01 — Linear Regression: Geometric Projection & Residuals
+Dataset → Scores → Probabilities → Loss → Gradients → Optimization → Evaluation
 
-### Forward Prediction
-Implemented the linear forward pass:
-
-$$
-\hat{y} = Xw + b
-$$
-
-Linear regression is treated as a **geometric projection problem**, not an
-optimization problem.
+No ML libraries. No black-box abstractions.
 
 ---
 
-### Residual Geometry
-Residuals are defined as:
+## 📊 Datasets & Results
 
-$$
-r = y - \hat{y}
-$$
+### Datasets Used
 
-They are interpreted as **vertical geometric distances** between the prediction
-line and observed data points.
+#### 1. Synthetic Binary Classification Dataset
+- Generated using **two Gaussian clusters**
+- Linearly separable with controlled noise
+- 2D features for decision-boundary visualization
+- Purpose: study convergence, geometry, and boundary evolution
 
-Manual parameter sweeps were used to observe:
-- underfitting due to poor projection alignment
-- systematic residual patterns
-- improved geometric alignment with better parameter choices
-
-This isolates model behavior before introducing optimization.
-
----
-
-### Numerical Standards
-- Enforced strict shape safety across all matrix operations
-- Relied on NumPy broadcasting for efficient vectorized computation
-- Avoided implicit reshaping or silent dimension expansion
-
-Day 01 formalizes *how predictions are generated*.
+#### 2. Public Dataset — Iris (Binary Subset)
+- Dataset: **UCI Iris**
+- Classes: Setosa vs Versicolor
+- Features: sepal length, sepal width
+- Purpose: validate generalization on real-world data
 
 ---
 
-## Day 02 — Linear Regression: The Normal Equation
+### Sample Results (Logistic Regression)
 
-### Analytical Optimization
-Implemented the closed-form least squares solution:
+| Model | Accuracy | Precision | Recall |
+|---|---|---|---|
+| From-scratch (NumPy) | ~92% | High | Tunable |
+| sklearn LogisticRegression | ~94% | High | High |
 
-$$
-w = (X^T X)^{-1} X^T y
-$$
+> The from-scratch model achieves comparable performance while exposing internal learning mechanics and diagnostics.
 
-This computes the **exact global minimum** of the squared error objective.
-
----
-
-### Least Squares as Projection
-The normal equation is interpreted geometrically as computing the
-**orthogonal projection of the target vector $$y$$ onto the column space of $$X$$**.
-
-This framing explains why the solution exists and when it fails.
+📎 **Reproducible results:**  
+- `notebooks/day06_logistic_regression_gd.ipynb`  
+- `notebooks/day07_model_evaluation_from_scratch.ipynb`
 
 ---
 
-### Matrix Augmentation
-The bias term was absorbed into the model by augmenting the data matrix:
+## 📈 Diagnostic Evidence (Non-Negotiable)
 
-$$
-\hat{y} = [\mathbf{1}, X]
-\begin{bmatrix}
-b \\
-w
-\end{bmatrix}
-$$
+The following diagnostics are generated directly by the notebooks:
 
-This allows all parameters to be learned through a single dot product.
+### 1️⃣ Loss Convergence
+![Loss Curve](assets/loss_curve.png)
+
+Monotonic decrease confirms stable optimization.
 
 ---
 
-### Stability & Scalability Analysis
-- Matrix inversion scales as $$O(d^3)$$
-- The solution requires $$X^T X$$ to be invertible
-- Linearly dependent features cause failure (singularity)
+### 2️⃣ Decision Boundary Evolution
+![Decision Boundary](assets/decision_boundary.gif)
 
-From an engineering perspective, explicit inversion is avoided in favor of
-numerical solvers, but the inverse is shown here for mathematical clarity.
+Visualizes rotation and translation of the hyperplane `z = 0` during training.
 
 ---
 
-### Transition to Iterative Optimization
-While the normal equation is exact, it does **not scale** to large models.
+### 3️⃣ Confusion Matrix
+![Confusion Matrix](assets/confusion_matrix.png)
 
-This inversion bottleneck motivates the transition to **iterative optimization**
-(Gradient Descent), where parameters are learned progressively using the same
-prediction and residual primitives developed in Days 01 and 02.
+Exposes false positives vs false negatives explicitly.
 
 ---
 
-## Day 03 — Linear Regression: Batch Gradient Descent
+## 🛠 Technical Implementation
 
-### Iterative Optimization
-Implemented a scalable batch gradient descent training loop to minimize the
-Mean Squared Error (MSE) cost function iteratively.
-
-This replaces closed-form matrix inversion with incremental parameter updates.
-
----
-
-### Vectorized Calculus
-Parameter updates follow:
-
-$$
-w = w - \eta \frac{\partial J}{\partial w}, \quad
-b = b - \eta \frac{\partial J}{\partial b}
-$$
-
-Gradients are computed using matrix–vector products, enabling fully vectorized
-multi-parameter updates without explicit loops.
+| Day | Focus | Implementation Outcome |
+|:--:|:--|:--|
+| 01 | Geometry | Residuals as projection distances |
+| 02 | Analytic | Normal Equation (exact, non-scalable) |
+| 03 | Optimization | Batch Gradient Descent + convergence |
+| 04 | Probability | Numerically stable sigmoid |
+| 05 | Objective | Log Loss + gradient verification |
+| 06 | Pipeline | End-to-end logistic regression |
+| 07 | Evaluation | Accuracy, Precision, Recall |
 
 ---
 
-### Convergence Engineering
-Integrated convergence controls into the training loop:
-- Early stopping based on cost improvement threshold
-- Maximum iteration safeguards
-- Empirical analysis of learning rate stability and divergence
+## ⚙️ Engineering Lessons (Earned via Failure)
 
-These mechanisms ensure numerically stable optimization.
-
----
-
-### Reusable Component
-Encapsulated gradient descent logic into a reusable `LinearRegressionGD` class,
-establishing the first production-style model in the *ML From Scratch* library.
-
-Day 03 completes the transition from analytical solutions to scalable learning systems.
-
-## Day 04 — Logistic Regression: The Sigmoid Function
-
-### Probabilistic Transformation
-Linear regression produces unbounded outputs and fails for classification tasks.
-To address this, implemented the Sigmoid activation function:
-
-$$
-\sigma(z) = \frac{1}{1 + e^{-z}}
-$$
-
-which transforms the linear score $$z = Xw + b$$ into a bounded probability
-$$P(y=1 \mid X) \in (0, 1)$$.
-
----
-
-### Decision Boundary Geometry
-Classification is interpreted geometrically as a spatial partitioning problem.
-
-The decision boundary occurs where:
-
-$$
-z = Xw + b = 0
-$$
-
-This linear hyperplane divides the feature space into two regions corresponding
-to predicted class probabilities above and below 0.5.
-
----
-
-### Numerical Stability Engineering
-Implemented input-range limiting for the sigmoid computation to prevent numerical
-overflow in the exponential function.
-
-This ensures stable forward passes even for large-magnitude logits and is a
-necessary safeguard for production-grade implementations.
-
----
-
-### Gradient Behavior Analysis
-Analyzed the derivative of the sigmoid function:
-
-$$
-\sigma'(z) = \sigma(z)(1 - \sigma(z))
-$$
-
-This reveals the vanishing gradient risk in regions of extreme model confidence,
-where updates become small and learning slows.
-
-Day 04 establishes the probabilistic foundation required for logistic regression
-optimization and classification loss functions.
-
-
-## Day 05 — Logistic Regression: Log Loss & Derivatives
-
-### Objective Function Analysis
-Evaluated the failure of Mean Squared Error (MSE) for classification tasks and
-implemented Binary Cross-Entropy (Log Loss) as the correct probabilistic objective
-for logistic regression.
-
-Log Loss evaluates the correctness of **model confidence**, not just numerical
-distance between predictions and labels.
-
----
-
-### Numerical Stability Primitives
-Engineered epsilon-clipping logic to prevent logarithmic singularities when computing:
-
-$$
-\log(0) \quad \text{and} \quad \log(1)
-$$
-
-Predicted probabilities are constrained to the interval:
-
-$$
-[\epsilon, 1 - \epsilon]
-$$
-
-ensuring numerically stable loss and gradient computation.
-
----
-
-### Learning Signal Verification
-Developed a numerical gradient checker using finite differences to validate the
-analytical derivatives of the Log Loss function.
-
-Close agreement between analytical and numerical gradients confirms correctness
-and reliability of the learning signal.
-
----
-
-### Confidence-Based Punishment
-Visualized Log Loss as a function of predicted probability to demonstrate how
-confident incorrect predictions are penalized **exponentially**, forcing the model
-to prioritize high-error samples during optimization.
-
-Day 05 establishes the correct objective function required for stable and
-interpretable classification learning.
-
-
-## Day 06 — Logistic Regression: Gradient Descent & Decision Boundaries
-
-### End-to-End Synthesis
-Integrated linear scoring, sigmoid activation, and log loss into a complete binary
-classification training pipeline.
-
-The model computes:
-- a linear score $$z = Xw + b$$
-- probabilistic predictions $$\hat{y} = \sigma(z)$$
-- optimization via Binary Cross-Entropy (Log Loss)
-
-This establishes logistic regression as a fully trainable system.
-
----
-
-### Decision Boundary Optimization
-Visualized the geometric evolution of the decision boundary defined by:
-
-$$
-z = Xw + b = 0
-$$
-
-Training progressively rotates and translates this hyperplane to partition feature
-space into probabilistic regions corresponding to class labels.
-
----
-
-### Gradient Chain Rule Implementation
-Leveraged the simplified gradient:
+### Vectorized Optimization
+All parameter updates use matrix calculus:
 
 $$
 \nabla_w J = \frac{1}{n} X^T (\hat{y} - y)
 $$
 
-This cancellation of sigmoid and log loss derivatives yields numerically stable and
-efficient parameter updates, closely resembling linear regression gradients.
+Guarantees shape safety and performance.
 
 ---
 
-### Loss vs. Accuracy Analysis
-Analyzed training dynamics to distinguish between:
-- **Log Loss** — a continuous optimization objective
-- **Accuracy** — a discrete evaluation metric
+### Numerical Stability (Observed, Not Assumed)
+Initial implementations failed with:
+- `overflow encountered in exp` when `z > ~60`  
+- `NaN` loss due to `log(0)`  
+- stalled learning from vanishing gradients  
 
-Observed that loss continues to decrease even when accuracy plateaus, reflecting
-increasing model confidence rather than class count changes.
+Fixes:  
+- logit clipping before sigmoid  
+- epsilon clipping before log loss  
 
-Day 06 completes the end-to-end training loop for logistic regression.
+These safeguards were introduced **after failures were observed**.
+
+---
+
+## 🗂 Repository Layout
+
+- `src/` — reusable regression implementations  
+- `notebooks/` — experiments, diagnostics, results  
+- `notes.md` — engineering decisions & lessons  
+
+---
+
+## 🧩 Why This Matters
+
+This pipeline generalizes directly to:
+- fraud detection  
+- spam filtering  
+- medical risk scoring  
+
+Any domain where **confidence, stability, and cost of error matter**.
+
+> This project demonstrates how models *behave*, not just how to train them.
